@@ -95,6 +95,6 @@ place this file in $CATALINA_HOME/Catalina/localhost/ directory. this enable web
 server all media files in context of http://localhost:8080/media url.
 
 Enter following command ingest all data in input_dir to solr collection
-java -jar dataImporter-1.5.jar --input-dir=H:\media --output_type=html  --web_url_prefix=http://localhost:8080 --collectionURL=http://localhost:8983/solr/DOCS --extract-individual-to-destination=true  --UNIQ_ID=UNIQ_ID --webapp-root-folder=H:\
+java -jar SolrIngestPipeline-1.5.jar --input-dir=H:\media --output_type=html  --web_url_prefix=http://localhost:8080 --collectionURL=http://localhost:8983/solr/DOCS --extract-individual-to-destination=true  --UNIQ_ID=UNIQ_ID --webapp-root-folder=H:\
 
 
