@@ -50,6 +50,8 @@ import org.apache.poi.xssf.model.CommentsTable;
 import org.apache.poi.xssf.model.StylesTable;
 import org.apache.poi.xssf.usermodel.XSSFComment;
 import org.apache.poi.xssf.usermodel.XSSFRelation;
+import org.apache.poi.xssf.usermodel.XSSFShape;
+import org.apache.poi.xssf.usermodel.XSSFSimpleShape;
 import org.apache.poi.xssf.usermodel.helpers.HeaderFooterHelper;
 import org.apache.tika.exception.TikaException;
 import org.apache.tika.metadata.Metadata;
@@ -67,12 +69,18 @@ import org.xml.sax.XMLReader;
 import com.dt.xfin.parser.MultimediaParser;
 import com.dt.xfin.solr.dataImporter;
 
+/**
+ * override to add name value pair for spreadsheet. assuming first full row are header.
+ * @author aweng
+ */
 public class XSSFExcelExtractorDecorator extends AbstractOOXMLExtractor {
     private final XSSFEventBasedExcelExtractor extractor;
     private final DataFormatter formatter;
     private final List<PackagePart> sheetParts = new ArrayList<PackagePart>();
     private final List<Boolean> sheetProtected = new ArrayList<Boolean>();
-    
+   
+    private Metadata metadata;
+
     public XSSFExcelExtractorDecorator(
             ParseContext context, XSSFEventBasedExcelExtractor extractor, Locale locale) {
         super(context, extractor);
@@ -86,6 +94,17 @@ public class XSSFExcelExtractorDecorator extends AbstractOOXMLExtractor {
         } else  {
            formatter = new DataFormatter(locale);
         }
+    }
+
+    @Override
+    public void getXHTML(
+            ContentHandler handler, Metadata metadata, ParseContext context)
+            throws SAXException, XmlException, IOException, TikaException {
+
+	this.metadata = metadata;
+	metadata.set(TikaMetadataKeys.PROTECTED, "false");
+
+	super.getXHTML(handler, metadata, context);
     }
 
     /**
@@ -114,7 +133,9 @@ public class XSSFExcelExtractorDecorator extends AbstractOOXMLExtractor {
        while (iter.hasNext()) {
            InputStream stream = iter.next();
            sheetParts.add(iter.getSheetPart());
-           SheetTextAsHTML sheetExtractor = new SheetTextAsHTML(xhtml, iter.getSheetComments());
+           
+           SheetTextAsHTML sheetExtractor = new SheetTextAsHTML(xhtml);
+           CommentsTable comments = iter.getSheetComments();
 
            // Start, and output the sheet name
            xhtml.startElement("div");
@@ -124,7 +145,7 @@ public class XSSFExcelExtractorDecorator extends AbstractOOXMLExtractor {
            xhtml.startElement("table");
            xhtml.startElement("tbody");
            
-           processSheet(sheetExtractor, styles, strings, stream);
+           processSheet(sheetExtractor, comments, styles, strings, stream);
 
            xhtml.endElement("tbody");
            xhtml.endElement("table");
@@ -138,7 +159,7 @@ public class XSSFExcelExtractorDecorator extends AbstractOOXMLExtractor {
            for(String footer : sheetExtractor.footers) {
               extractHeaderFooter(footer, xhtml);
            }
-           
+           processShapes(iter.getShapes(), xhtml);
            // All done with this sheet
            xhtml.endElement("div");
        }
@@ -153,8 +174,23 @@ public class XSSFExcelExtractorDecorator extends AbstractOOXMLExtractor {
         }
     }
     
+    private void processShapes(List<XSSFShape> shapes, XHTMLContentHandler xhtml) throws SAXException {
+       if (shapes == null){
+           return;
+       }
+       for (XSSFShape shape : shapes){
+           if (shape instanceof XSSFSimpleShape){
+               String sText = ((XSSFSimpleShape)shape).getText();
+               if (sText != null && sText.length() > 0){
+                   xhtml.element("p", sText);
+               }
+           }
+       }
+   }
+    
     public void processSheet(
           SheetContentsHandler sheetContentsExtractor,
+          CommentsTable comments,
           StylesTable styles,
           ReadOnlySharedStringsTable strings,
           InputStream sheetInputStream)
@@ -166,12 +202,14 @@ public class XSSFExcelExtractorDecorator extends AbstractOOXMLExtractor {
          XMLReader sheetParser = saxParser.getXMLReader();
          XSSFSheetInterestingPartsCapturer handler =  
             new XSSFSheetInterestingPartsCapturer(new XSSFSheetXMLHandler(
-               styles, strings, sheetContentsExtractor, formatter, false));
+               styles, comments, strings, sheetContentsExtractor, formatter, false));
          sheetParser.setContentHandler(handler);
          sheetParser.parse(sheetSource);
          sheetInputStream.close();
          
-         sheetProtected.add(handler.hasProtection);
+         if (handler.hasProtection) {
+	     metadata.set(TikaMetadataKeys.PROTECTED, "true");
+	 }
       } catch(ParserConfigurationException e) {
          throw new RuntimeException("SAX parser appears to be broken - " + e.getMessage());
       }
@@ -182,18 +220,16 @@ public class XSSFExcelExtractorDecorator extends AbstractOOXMLExtractor {
      */
     protected static class SheetTextAsHTML implements SheetContentsHandler {
        private XHTMLContentHandler xhtml;
-       private CommentsTable comments;
        private List<String> headers;
        private List<String> footers;
        
-       private Map<String, String> columnHeaders=new HashMap<String, String>();
+        private Map<String, String> columnHeaders=new HashMap<String, String>();
        private Map<String, String> nameValue=new HashMap<String, String>();
       
        private boolean headerProcessed=false;
        
-       protected SheetTextAsHTML(XHTMLContentHandler xhtml, CommentsTable comments) {
+       protected SheetTextAsHTML(XHTMLContentHandler xhtml) {
           this.xhtml = xhtml;
-          this.comments = comments;
           headers = new ArrayList<String>();
           footers = new ArrayList<String>();
        }
@@ -204,7 +240,7 @@ public class XSSFExcelExtractorDecorator extends AbstractOOXMLExtractor {
           } catch(SAXException e) {}
        }
        
-       public void endRow() {
+       public void endRow(int rowNum) {
           try {
              xhtml.endElement("tr");
              
@@ -221,7 +257,7 @@ public class XSSFExcelExtractorDecorator extends AbstractOOXMLExtractor {
           } catch(SAXException e) {}
        }
 
-       public void cell(String cellRef, String formattedValue) {
+       public void cell(String cellRef, String formattedValue, XSSFComment comment) {
           try {
         	 
         	  
@@ -275,18 +311,17 @@ public class XSSFExcelExtractorDecorator extends AbstractOOXMLExtractor {
              xhtml.startElement("td");
 
              // Main cell contents
-             xhtml.characters(formattedValue);
+             if (formattedValue != null) {
+                 xhtml.characters(formattedValue);
+             }
 
              // Comments
-             if(comments != null) {
-                XSSFComment comment = comments.findCellComment(cellRef);
-                if(comment != null) {
-                   xhtml.startElement("br");
-                   xhtml.endElement("br");
-                   xhtml.characters(comment.getAuthor());
-                   xhtml.characters(": ");
-                   xhtml.characters(comment.getString().getString());
-                }
+             if(comment != null) {
+                xhtml.startElement("br");
+                xhtml.endElement("br");
+                xhtml.characters(comment.getAuthor());
+                xhtml.characters(": ");
+                xhtml.characters(comment.getString().getString());
              }
 
              xhtml.endElement("td");
@@ -416,21 +451,5 @@ public class XSSFExcelExtractorDecorator extends AbstractOOXMLExtractor {
 
        return parts;
     }
-
-    @Override
-    public MetadataExtractor getMetadataExtractor() {
-        return new MetadataExtractor(extractor) {
-            @Override
-            public void extract(Metadata metadata) throws TikaException {
-                super.extract(metadata);
-
-                metadata.set(TikaMetadataKeys.PROTECTED, "false");
-                for(boolean prot : sheetProtected) {
-                   if(prot) {
-                      metadata.set(TikaMetadataKeys.PROTECTED, "true");
-                   }
-                }
-            }
-        };
-    }
 }
+
