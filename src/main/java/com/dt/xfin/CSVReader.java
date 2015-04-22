@@ -8,6 +8,7 @@ import java.io.IOException;
 import java.io.Reader;
 import java.util.ArrayList;
 import java.util.List;
+import org.apache.log4j.Logger;
 
 
 
@@ -217,7 +218,7 @@ public class CSVReader implements Closeable {
 	public String[] readNext() throws IOException {
 
 		String[] result = null;
-	//	System.out.println("start readNext....");
+	
 		do {
 			String nextLine = getNextLine();
 			if (!hasNext) {
@@ -242,7 +243,7 @@ public class CSVReader implements Closeable {
 				}
 			}
 		} while (parser.isPending());
-		//System.out.println("end readNext....");
+	
 		return result;
 	}
 
@@ -264,11 +265,12 @@ public class CSVReader implements Closeable {
 			}
 			else
 			{
-				System.out.println("skipping "+ skipLines+" lines");
+                            
+				 Logger.getLogger(CSVReader.class).debug("skipping "+ skipLines+" lines");
 				for (int i = 0; i < skipLines; i++) {
 					br.readLine();
 				}
-				System.out.println("done skipping "+ skipLines+" lines");
+				 Logger.getLogger(CSVReader.class).debug("done skipping "+ skipLines+" lines");
 				this.linesSkiped = true;
 			}
 		}

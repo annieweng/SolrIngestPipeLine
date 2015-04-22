@@ -34,13 +34,18 @@ import com.itextpdf.text.pdf.parser.PdfImageObject;
 import com.itextpdf.text.pdf.parser.PdfReaderContentParser;
 import com.itextpdf.text.pdf.parser.RenderListener;
 import com.itextpdf.text.pdf.parser.TextRenderInfo;
+import org.apache.log4j.Logger;
+
+
+//JBIG2 is a highly-compressed black and white image format that uses symbol recognition and substitution for very dramatic compression results.
+//Any black and white image can be compressed using JBIG2 including images stored as Group 4, Group 3, MO:DCA, TIFF, PDF and others.
 
 public class JBig2Image {
 	private String filepath;
 	private static int imageIndex=0;
 	  /** Log instance. */
     private static final Log LOG = LogFactory.getLog(JBig2Image.class);
-	private String pdfFile="/home/aweng/data/TITAN/test/test.pdf";
+	private String pdfFile;
 
 	protected static Map<Integer, List<String>> imageSourceMaps=new HashMap<Integer, List<String>>();
 
@@ -104,7 +109,7 @@ public class JBig2Image {
 
 			}
 		} catch (IOException ex) {
-			System.out.println(ex);
+			 Logger.getLogger(JBig2Image.class).error(ex);
 		}
 		catch(Exception ex)
 		{
@@ -149,13 +154,9 @@ public class JBig2Image {
 			//inputStream = new FileInputStream(file);
 			
 			decoder = new JBIG2Decoder();
-			try {
+			
 				decoder.decodeJBIG2(file);
-			} catch (IOException e) {
-				// TODO Auto-generated catch block
-				e.printStackTrace();
-			} 
-
+			
 
 			  BufferedImage bi = decoder.getPageAsBufferedImage(0);
 
@@ -168,7 +169,7 @@ public class JBig2Image {
 			ImageIO.write(bi, "png", new File(outputFileName));
 
 		} catch (IOException ex) {
-			System.out.println(ex);
+			Logger.getLogger(JBig2Image.class).error(ex);
 		}
 		catch(Exception ex)
 		{
@@ -193,10 +194,10 @@ public class JBig2Image {
 			table.addCell(nestedImgCell);
 			document.add(table);
 			document.close();
-			System.out.println(
+			Logger.getLogger(JBig2Image.class).debug(
 					"======== PDF Created Successfully =========");
 		} catch (Exception e) {
-			System.out.println(e);
+			Logger.getLogger(JBig2Image.class).error(e);
 		}
 	}
 
@@ -246,7 +247,7 @@ class MyImageRenderListener implements RenderListener {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
-		//System.out.println(content);
+		
 		catch (IOException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
@@ -306,14 +307,7 @@ class MyImageRenderListener implements RenderListener {
 			Matrix matrix=renderInfo.getImageCTM();
 
 			PdfImageObject image = renderInfo.getImage();
-			/*
-			for(PdfName name:image.getDictionary().getKeys())
-			{
-			//	System.out.println(name+": "+image.get(name).toString());
-
-			}
-			 */
-
+			
 			/*
     		PdfName filter = (PdfName)image.get(PdfName.FILTER);
     		if (PdfName.DCTDECODE.equals(filter)) {
@@ -354,7 +348,7 @@ class MyImageRenderListener implements RenderListener {
 			}
 			if(renderInfo.getRef()==null || image.getFileType()==null)
 			{
-				System.out.println("something is wrong : image type:"+image.getFileType());
+				Logger.getLogger(JBig2Image.class).warn("something is wrong : image type:"+image.getFileType());
 			}
 			else
 			{
@@ -365,7 +359,7 @@ class MyImageRenderListener implements RenderListener {
 				{
 					if( matrix.get(Matrix.I22)<0)
 					{
-					System.out.println("Image is upside down. flip it");
+					Logger.getLogger(JBig2Image.class).debug("Image is upside down. flip it");
 					BufferedImage reversedImage=verticalflip(renderInfo.getImage().getBufferedImage());
 					ImageIO.write(reversedImage,  image.getFileType(), new File(filename));
 					}
@@ -376,7 +370,7 @@ class MyImageRenderListener implements RenderListener {
 					}
 					
 					content+="<img source=\"file://"+filename+"\" width=\"200\" />";
-					System.out.println("successfully processed image type:"+image.getFileType()+" byte type"+  image.getImageBytesType()+
+					Logger.getLogger(JBig2Image.class).debug("successfully processed image type:"+image.getFileType()+" byte type"+  image.getImageBytesType()+
 							" "+renderInfo.getRef().getNumber());
 				}
 				else
@@ -397,13 +391,13 @@ class MyImageRenderListener implements RenderListener {
 					os.write(image.getImageAsBytes());
 					os.flush();
 					os.close();
-					System.out.println("successfully processed image type:"+image.getFileType()+" byte type"+  image.getImageBytesType()+
+					Logger.getLogger(JBig2Image.class).debug("successfully processed image type:"+image.getFileType()+" byte type"+  image.getImageBytesType()+
 							" "+renderInfo.getRef().getNumber());
 					}
 					else
 					{
 						filename=null;
-						System.out.println("something is wrong : fail to get jbig2 header info. ignore the image");
+						Logger.getLogger(JBig2Image.class).debug("something is wrong : fail to get jbig2 header info. ignore the image");
 					}
 
 				}	
@@ -432,7 +426,7 @@ class MyImageRenderListener implements RenderListener {
 			}
 
 		} catch (IOException e) {
-			System.out.println(e.getMessage());
+			Logger.getLogger(JBig2Image.class).error(e.getMessage());
 		}
 	}
 

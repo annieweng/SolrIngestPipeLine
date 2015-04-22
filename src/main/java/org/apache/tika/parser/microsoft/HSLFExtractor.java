@@ -45,6 +45,7 @@ import org.xml.sax.helpers.AttributesImpl;
 import com.dt.xfin.data.PowerPointSlide;
 import com.dt.xfin.parser.MultimediaParser;
 import com.dt.xfin.solr.dataImporter;
+import org.apache.log4j.Logger;
 
 public class HSLFExtractor extends AbstractPOIFSExtractor {
 	public HSLFExtractor(ParseContext context) {
@@ -158,12 +159,13 @@ public class HSLFExtractor extends AbstractPOIFSExtractor {
 						FileOutputStream out = new FileOutputStream(MultimediaParser.getCurrentOutputFolder()+File.separatorChar+name);
 						out.write(data);
 						out.close();
-						System.out.println("saving image  "+name+" to "+MultimediaParser.getCurrentOutputFolder());
+                                                Logger.getLogger(HSLFExtractor.class).debug("saving image  "+name+" to "+MultimediaParser.getCurrentOutputFolder());
+						
 						
 						
 						name=MultimediaParser.getUrlOutputFileName(name);
-					name= dataImporter.encode(name);
-							System.out.println("image src name is "+name);
+                                                name= dataImporter.encode(name);
+							
 						
 						
 								

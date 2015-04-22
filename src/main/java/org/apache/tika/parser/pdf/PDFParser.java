@@ -63,6 +63,7 @@ import org.xml.sax.SAXException;
 
 import com.dt.xfin.parser.MultimediaParser;
 import com.dt.xfin.solr.dataImporter;
+import org.apache.log4j.Logger;
 
 /**
  * PDF parser.
@@ -253,7 +254,7 @@ public class PDFParser extends AbstractParser {
     private void listAvailableMetaDataFields(final Metadata metadata) {
     	  for(int i = 0; i <metadata.names().length; i++) {
     	    String name = metadata.names()[i];
-    	    System.out.println(name + " : " + metadata.get(name));
+    	    Logger.getLogger(PDFParser.class).debug(name + " : " + metadata.get(name));
     	  }
     	}
     

@@ -280,7 +280,7 @@ public class dataImporter {
 
 
 	private static void log(String msg) {
-		if(  Logger.getLogger(dataImporter.class).isDebugEnabled())
+	
 			Logger.getLogger(dataImporter.class).debug(msg);
 
 	}
@@ -361,7 +361,9 @@ public class dataImporter {
 					}
 					catch(Exception ex)
 					{
-						System.out.println(" catch exception in parse file: "+ex.getMessage());
+                                             
+                                              Logger.getLogger(dataImporter.class).error(" catch exception in parse file: "+ex.getMessage());
+						
 					}
 					// Just to show how much meta-data and what form it's in.
 					//dumpMetadata(file.getCanonicalPath(), parser.getMetadata());
@@ -565,12 +567,8 @@ public class dataImporter {
 								}
 								tmp+=File.separatorChar+file.getName()+".html";
 
-								//in window, encode it again,
-								//if(File.separator.equals("\\"))
-								//{
 								tmp=encode(tmp);
-								//}
-								//System.out.print("tmp is "+tmp+" current output is "+MultimediaParser.getCurrentOutputFolder());
+								
 								/*
 
 
@@ -722,7 +720,9 @@ public class dataImporter {
 										}
 										else
 										{
-											System.out.print("something is wrong , key or value is null");
+                                                                                   
+                                                                                    Logger.getLogger (dataImporter.class).warn("something is wrong , key or value is null");
+											
 										}
 									}
 
@@ -803,7 +803,7 @@ public class dataImporter {
 														value=value.substring(value.indexOf(": ")+2).replaceAll("\"", "");
 														if(value!=null && (!value.equals("")))
 														{
-															//	System.out.println("key: "+key +"value: " +value);
+															
 															thePage.setField(key, value);
 															thePage.addField("text",value);
 															thePage.addField("text_rev", value);

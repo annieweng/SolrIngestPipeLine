@@ -22,6 +22,7 @@ import java.io.IOException;
 
 import java.util.List;
 import java.util.Map;
+import org.apache.log4j.Logger;
 
 /**
  * This is an example on how to get the x/y coordinates of image locations.
@@ -79,7 +80,7 @@ public class PrintImageLocation extends PDFStreamEngine
                 for( int i=0; i<allPages.size(); i++ )
                 {
                     PDPage page = (PDPage)allPages.get( i );
-                    System.out.println( "Processing page: " + i );
+                   Logger.getLogger(PrintImageLocation.class).debug("Processing page: " + i );
                     printer.processStream( page, page.findResources(), page.getContents().getStream() );
                 }
             }
@@ -131,7 +132,7 @@ public class PrintImageLocation extends PDFStreamEngine
                     float xScale = unrotatedCTM.getXScale();
                     float yScale = unrotatedCTM.getYScale();
 
-                    System.out.println( "Found image[" + objectName.getName() + "] " +
+                    Logger.getLogger(PrintImageLocation.class).debug( "Found image[" + objectName.getName() + "] " +
                             "at " + unrotatedCTM.getXPosition() + "," + unrotatedCTM.getYPosition() +
                             " size=" + (xScale/100f*image.getWidth()) + "," + (yScale/100f*image.getHeight() ));
                 }

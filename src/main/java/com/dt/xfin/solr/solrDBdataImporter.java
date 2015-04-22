@@ -461,16 +461,16 @@ public class solrDBdataImporter extends Thread{
 		// Could even be omitted
 		// assuming commitWithin was specified.
 		long endTime = System.currentTimeMillis();
-		System.out.println("in thread" +this.getName()+"Total Time Taken: " + (endTime - _start) +
+		log("in thread" +this.getName()+"Total Time Taken: " + (endTime - _start) +
 				" milliseconds to index " + _totalSql +
 				" SQL rows and ");
 	}
 
 
 	private static void log(String msg) {
-		//if(  Logger.getLogger(solrDBdataImporter.class).isDebugEnabled())
-		//	Logger.getLogger(solrDBdataImporter.class).debug(msg);
-		System.out.println(msg);
+		
+			Logger.getLogger(solrDBdataImporter.class).debug(msg);
+		
 	}
 
 
@@ -534,7 +534,7 @@ public class solrDBdataImporter extends Thread{
 			}
 
 			query+=" order by table_name";
-			System.out.println("query is "+query+ " at thread"+this.getName());
+			log("query is "+query+ " at thread"+this.getName());
 			//get distinct tables from the database
 			ResultSet tableRs = st.executeQuery(query);
 			//go ahead get the table content
@@ -613,7 +613,7 @@ public class solrDBdataImporter extends Thread{
 					{
 						q+=" where "+tableCondition;
 					}
-					System.out.println("query: "+q);
+					log("query: "+q);
 					ResultSet contentRs=
 							tablestmt.executeQuery(q);
 
@@ -800,7 +800,7 @@ public class solrDBdataImporter extends Thread{
 						}
 						if(_totalSql%100000==0)
 						{
-							System.out.println("Total Time Taken: " + (System.currentTimeMillis() - _start)/1000/60 +
+							log("Total Time Taken: " + (System.currentTimeMillis() - _start)/1000/60 +
 									" minutes to index " + _totalSql +
 									" SQL rows and ");
 						}
@@ -810,7 +810,7 @@ public class solrDBdataImporter extends Thread{
 
 				}
 				catch(Exception ex)
-				{System.out.println("exception found. current table is "+table_name);
+				{log("exception found. current table is "+table_name);
 				ex.printStackTrace();
 				}
 			}

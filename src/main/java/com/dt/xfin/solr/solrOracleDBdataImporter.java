@@ -407,6 +407,7 @@ public class solrOracleDBdataImporter extends Thread {
 
 	}
 
+          
 	// Just a convenient place to wrap things up.
 	private void endIndexing() throws IOException, SolrServerException {
 		if (_docs.size() > 0) { // Are there any documents left over?
@@ -419,15 +420,15 @@ public class solrOracleDBdataImporter extends Thread {
 		// Could even be omitted
 		// assuming commitWithin was specified.
 		long endTime = System.currentTimeMillis();
-		System.out.println("in thread" + this.getName() + "Total Time Taken: "
+		log("in thread" + this.getName() + "Total Time Taken: "
 				+ (endTime - _start) + " milliseconds to index " + _totalSql
 				+ " SQL rows and ");
 	}
 
 	private static void log(String msg) {
-		// if( Logger.getLogger(solrDBdataImporter.class).isDebugEnabled())
-		// Logger.getLogger(solrDBdataImporter.class).debug(msg);
-		System.out.println(msg);
+	
+		 Logger.getLogger(solrDBdataImporter.class).debug(msg);
+		
 	}
 
 	public static String encode(String url) throws UnsupportedEncodingException {
@@ -486,7 +487,7 @@ public class solrOracleDBdataImporter extends Thread {
 			}
 
 			query += " order by table_name";
-			System.out.println("query is " + query + " at thread"
+			log("query is " + query + " at thread"
 					+ this.getName());
 			// get distinct tables from the database
 			ResultSet tableRs = st.executeQuery(query);
@@ -511,7 +512,7 @@ public class solrOracleDBdataImporter extends Thread {
 				if (!foundStartTable) {
 
 					if (startTable.equalsIgnoreCase(table_name)) {
-						System.out.print(" starting importing db from table "
+						log(" starting importing db from table "
 								+ startTable);
 						foundStartTable = true;
 					} else {
@@ -557,7 +558,7 @@ public class solrOracleDBdataImporter extends Thread {
 					if (tableCondition != null) {
 						q += " where " + tableCondition;
 					}
-					System.out.println("query: " + q);
+					log("query: " + q);
 					ResultSet contentRs = tablestmt.executeQuery(q);
 
 					// postion to name+_+type
@@ -742,7 +743,7 @@ public class solrOracleDBdataImporter extends Thread {
 							_docs.clear();
 						}
 						if (_totalSql % 100000 == 0) {
-							System.out.println("Total Time Taken: "
+							log("Total Time Taken: "
 									+ (System.currentTimeMillis() - _start)
 									/ 1000 / 60 + " minutes to index "
 									+ _totalSql + " SQL rows and ");
@@ -752,7 +753,7 @@ public class solrOracleDBdataImporter extends Thread {
 					contentRs.close();
 
 				} catch (Exception ex) {
-					System.out.println("exception found. current table is "
+					log("exception found. current table is "
 							+ table_name);
 					ex.printStackTrace();
 				}
