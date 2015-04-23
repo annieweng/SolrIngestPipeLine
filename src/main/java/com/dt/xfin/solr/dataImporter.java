@@ -159,32 +159,40 @@ public class dataImporter {
 		} 
 		else if (arg.startsWith("--input-dir=")) {
 			inputDir = new File(arg.substring("--input-dir=".length()));
+                        Logger.getLogger(dataImporter.class).info("process input direction: "+inputDir);
 		} 
 		else if (arg.startsWith("--extract-dir=")) {
 			extractDir = new File(arg.substring("--extract-dir=".length()));
+                        Logger.getLogger(dataImporter.class).info("data extracted will be in: "+extractDir);
 		} 
 		else if (arg.startsWith("--output_type=")) {
 			outputType = arg.substring("--output_type=".length());
+                           Logger.getLogger(dataImporter.class).info("output type: "+outputType);
 		}
 		else if (arg.startsWith("--web_url_prefix=")) {
 			web_url_prefix = arg.substring("--web_url_prefix=".length());
+                        Logger.getLogger(dataImporter.class).info("media file  will be host on url_prefix "+web_url_prefix);
 		}
 		else if(arg.startsWith("--collection="))
 		{
 			collection_name=arg.substring("--collection=".length());
+                          Logger.getLogger(dataImporter.class).info("files will be ingest into SOLR collection:  "+collection_name);
 		}
 
 		else if (arg.startsWith("--webapp-root-folder=")) {
 			WEB_CONTENT_ROOT_FOLDER = arg.substring("--webapp-root-folder=".length());
+                         Logger.getLogger(dataImporter.class).info("media file url subpath will start with this webapp-root-folder: "  +WEB_CONTENT_ROOT_FOLDER);
 		}
 		else if(arg.startsWith("--zookeeper-url="))
 		{
 			zookeeper_url= arg.substring("--zookeeper-url=".length());
+                         Logger.getLogger(dataImporter.class).info("Zookeeper URL: "+ zookeeper_url);
 		}
 
 		else if(arg.startsWith("--collectionURL="))
 		{
 			collectionURL=arg.substring("--collectionURL=".length());
+                         Logger.getLogger(dataImporter.class).info("collectionURL is "+collectionURL);
 		}
 		else if(arg.startsWith("--extract-individual-to-destination"))
 		{
@@ -192,10 +200,12 @@ public class dataImporter {
 			{
 				extract_individual=true;
 			}
+                         Logger.getLogger(dataImporter.class).info("extract individual row/page to a individual solr doucment: "+extract_individual);
 		}
 
 		else if (arg.startsWith("--UNIQ_ID=")) {
 			UNIQ_ID = arg.substring("--UNIQ_ID=".length());
+                         Logger.getLogger(dataImporter.class).info("UNIQ ID Name to be used by SOLR: "+UNIQ_ID);
 		} 
 
 	}
